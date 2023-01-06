@@ -44,19 +44,32 @@ type User struct {
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	resp, _ := http.Get("https://api.github.com/users/fsilvaco")
+	resp, err := http.Get("https://api.github.com/users/fsilvaco")
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
 
-	data, _ := ioutil.ReadAll(resp.Body)
+	if resp.StatusCode != 200 {
+		fmt.Println("Not success", resp.StatusCode)
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
 
 	var user User
 
-	json.Unmarshal(data, &user)
+	err = json.Unmarshal(body, &user)
 
-	fmt.Fprintln(w, user.Login)
+	if err != nil {
+		fmt.Println("error getting data", err.Error())
+	}
+
+	fmt.Fprintln(w, user)
 
 }
 
 func main() {
 	http.HandleFunc("/", handler)
+	fmt.Println("app running is :8080")
 	http.ListenAndServe(":8080", nil)
 }
